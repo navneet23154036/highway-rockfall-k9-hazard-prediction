@@ -1,33 +1,3 @@
-"""Generate downloadable PDF reports from saved model results (no retraining)."""
-from io import BytesIO
-from datetime import datetime, timezone
-from xml.sax.saxutils import escape
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, Flowable
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.units import inch
-from reportlab.lib.pagesizes import A4
-
-PALETTE={'Low':colors.HexColor('#238568'),'Moderate':colors.HexColor('#bf8b31'),'High':colors.HexColor('#b85f4b')}
-NAVY=colors.HexColor('#193646')
-def num(x):
-    v=float(x)
-    if not __import__('math').isfinite(v):raise ValueError('Invalid score')
-    return v
-def txt(v):return escape(str(v if v is not None else ''))
-def report_parameter_labels():
-    """Use the same CDOT labels exposed to the website by /schema."""
-    from app import B, worksheet_score_labels
-    labels = dict(B.get('item_names', {})) if isinstance(B, dict) else {}
-    labels.update(worksheet_score_labels())
-    return labels
-
-STANDARD_PARAMETER_NAMES = {
-    'rock_type':'Rock Type', 'slope_type':'Slope Type', 'region':'Engineering Region',
-    'rater':'Inspector / Rater',
-    'slope_height':'Slope Height (ft)', 'slope_angle':'Slope Angle (degrees)',
-    'slope_length':'Slope Length (ft)', 'ditch_slope':'Ditch Slope (degrees)',
     'ditch_width':'Ditch Width (ft)', 'ditch_depth':'Ditch Depth (ft)',
     'sc28':'Rockfall Frequency Score (Slope)',
     'sc32':'Annual Precipitation Score (Climate)',
@@ -125,5 +95,17 @@ def create_pdf(records):
         else:story.append(P('No submitted input values were saved with this assessment.'))
     story += [P('4. Interpretation and Limitations','HeadingX'),P('A High classification indicates a predicted total score above the applicable High cutoff. It does not mean a rockfall will definitely occur. A hazard score is NOT a percentage, calibrated probability, or event forecast. Assessments from different slopes cannot establish a change in hazard over time at a single site.'),P('This is a model-based screening report, not a certified geotechnical safety assessment. Decisions affecting public safety require field verification and qualified professional review.')]
     def footer(canvas,doc):
+        # A translucent copy of the project's triangle symbol on every page.
+        canvas.saveState()
+        watermark_path = Path(__file__).resolve().parent / 'rockfall_watermark.png'
+        if watermark_path.is_file():
+            page_w, page_h = A4
+            side = min(page_w * 0.66, page_h * 0.52)
+            canvas.setFillAlpha(0.11)
+            canvas.drawImage(ImageReader(str(watermark_path)),
+                             (page_w-side)/2, (page_h-side)/2,
+                             width=side, height=side, mask='auto',
+                             preserveAspectRatio=True)
+        canvas.restoreState()
         canvas.setFont('Helvetica',8);canvas.setFillColor(colors.grey);canvas.drawString(43,26,'Highway Rockfall Hazard Classification | v4 k=9');canvas.drawRightString(A4[0]-43,26,f'Page {doc.page}')
     doc.build(story,onFirstPage=footer,onLaterPages=footer);return buf.getvalue()
