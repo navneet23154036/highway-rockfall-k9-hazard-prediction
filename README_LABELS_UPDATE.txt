@@ -1,0 +1,1 @@
+PDF input labels now match the live /schema labels (original CDOT worksheet and exported model bundle). No prediction or input values changed. Install dependencies using python -m pip install -r requirements.txt; copy rockfall_v4_k9.joblib into this folder; run python app.py. Download a NEW PDF to see the updated names. Existing downloaded PDFs do not change.

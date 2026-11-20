@@ -1,0 +1,1 @@
+Auto-fill fix: loads schema, fills all named controls including geological ratings, displays errors, runs real prediction. Copy rockfall_v4_k9.joblib into this folder. Run python app.py and hard refresh. Presets are examples, not guaranteed classes.

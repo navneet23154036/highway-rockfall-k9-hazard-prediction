@@ -1,0 +1,1 @@
+PDF report: screenshot-style hazard result, dynamic score ranges, cutoff distance, every submitted input, and history charts. Copy trained rockfall_v4_k9.joblib into folder, install requirements, run python app.py. No probability percentages are displayed.

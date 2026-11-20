@@ -1,0 +1,1 @@
+Score-only reports: no hazard percentages. PDF and HTML reports show numeric score, Low/Moderate/High ranges, score-point distances to cutoffs, saved assessment counts, and all submitted inputs. Copy trained rockfall_v4_k9.joblib alongside app.py; install requirements and run python app.py. Note: differences from thresholds are not time-based hazard changes.
