@@ -1,3 +1,35 @@
+"""Generate downloadable PDF reports from saved model results (no retraining)."""
+from io import BytesIO
+from datetime import datetime, timezone
+from xml.sax.saxutils import escape
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, Flowable
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
+from pathlib import Path
+
+PALETTE={'Low':colors.HexColor('#238568'),'Moderate':colors.HexColor('#bf8b31'),'High':colors.HexColor('#b85f4b')}
+NAVY=colors.HexColor('#193646')
+def num(x):
+    v=float(x)
+    if not __import__('math').isfinite(v):raise ValueError('Invalid score')
+    return v
+def txt(v):return escape(str(v if v is not None else ''))
+def report_parameter_labels():
+    """Use the same CDOT labels exposed to the website by /schema."""
+    from app import B, worksheet_score_labels
+    labels = dict(B.get('item_names', {})) if isinstance(B, dict) else {}
+    labels.update(worksheet_score_labels())
+    return labels
+
+STANDARD_PARAMETER_NAMES = {
+    'rock_type':'Rock Type', 'slope_type':'Slope Type', 'region':'Engineering Region',
+    'rater':'Inspector / Rater',
+    'slope_height':'Slope Height (ft)', 'slope_angle':'Slope Angle (degrees)',
+    'slope_length':'Slope Length (ft)', 'ditch_slope':'Ditch Slope (degrees)',
     'ditch_width':'Ditch Width (ft)', 'ditch_depth':'Ditch Depth (ft)',
     'sc28':'Rockfall Frequency Score (Slope)',
     'sc32':'Annual Precipitation Score (Climate)',
